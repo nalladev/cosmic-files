@@ -340,6 +340,7 @@ pub enum Message {
     Compress(Option<Entity>),
     Config(Config),
     Copy(Option<Entity>),
+    CopyErrorLog(String),
     CopyPath(Option<Entity>),
     CopyTo(Option<Entity>),
     CopyToResult(DialogResult),
@@ -2961,6 +2962,9 @@ impl Application for App {
                 let path_strings: Vec<String> =
                     paths.into_iter().map(|p| p.display().to_string()).collect();
                 let text = path_strings.join("\n");
+                return clipboard::write(text);
+            }
+            Message::CopyErrorLog(text) => {
                 return clipboard::write(text);
             }
             Message::CopyTo(entity_opt) => {
@@ -5690,6 +5694,10 @@ impl Application for App {
                     .title("Failed operations")
                     .body(errors.join("\n\n"))
                     .icon(icon::from_name("dialog-error").size(64))
+                    .secondary_action(
+                        widget::button::standard(fl!("copy_noun"))
+                            .on_press(Message::CopyErrorLog(errors.join("\n\n"))),
+                    )
                     //TODO: retry action
                     .primary_action(
                         widget::button::standard(fl!("cancel")).on_press(Message::DialogCancel),
